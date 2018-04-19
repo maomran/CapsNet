@@ -40,7 +40,7 @@ def main(args):
             'global_step', [], initializer=tf.constant_initializer(0), trainable=False)
 
         """Get batches per epoch."""
-        num_batches_per_epoch = int(dataset_size / cfg.batch_size)
+        num_batches_per_epoch = int(dataset_size * 5 / cfg.batch_size* dataset_size)
 
         """Use exponential decay leanring rate?"""
         lrn_rate = tf.maximum(tf.train.exponential_decay(
@@ -54,7 +54,8 @@ def main(args):
 
         """Define the dataflow graph."""
         m_op = tf.placeholder(dtype=tf.float32, shape=())
-        with tf.device('/gpu:0'):
+        for dev in ['/device:gpu:0','/device:gpu:2']
+        with tf.device(dev):
             with slim.arg_scope([slim.variable], device='/cpu:0'):
                 batch_squash = tf.divide(batch_x, 255.)
                 batch_x = slim.batch_norm(batch_x, center=False, is_training=True, trainable=True)
@@ -83,7 +84,7 @@ def main(args):
 
         """Set Session settings."""
         sess = tf.Session(config=tf.ConfigProto(
-            allow_soft_placement=True, log_device_placement=False))
+            allow_soft_placement=True, log_device_placement=True))
         sess.run(tf.local_variables_initializer())
         sess.run(tf.global_variables_initializer())
 

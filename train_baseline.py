@@ -57,7 +57,7 @@ def main(args):
             with slim.arg_scope([slim.variable], device='/cpu:0'):
                 batch_x_squash = tf.divide(batch_x, 255.)
                 batch_x = slim.batch_norm(batch_x, center=False, is_training=True, trainable=True)
-                output = net.build_arch_baseline(batch_x, is_train=True,
+                output, _ = net.build_arch_baseline(batch_x, is_train=True,
                                                  num_classes=num_classes)
                 loss, recon_loss, _ = net.cross_ent_loss(output, batch_x_squash, batch_labels)
                 acc = net.test_accuracy(output, batch_labels)
