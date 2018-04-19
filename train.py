@@ -69,7 +69,7 @@ def main(args):
                     tf.summary.scalar('reconstruction_loss', mse)
                     tf.summary.scalar('all_loss', loss)
                     tf.summary.scalar('train_acc', acc)
-
+ 
                 """Compute gradient."""
                 grad = opt.compute_gradients(loss)
                 # See: https://stackoverflow.com/questions/40701712/how-to-check-nan-in-gradients-in-tensorflow-when-updating
