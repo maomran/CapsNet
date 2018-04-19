@@ -1,7 +1,4 @@
-# MATRIX CAPSULES EM-Tensorflow
-
-[![License](https://img.shields.io/badge/license-Apache%202.0-blue.svg?style=plastic)](https://opensource.org/licenses/Apache-2.0)
-![completion](https://img.shields.io/badge/completion%20state-95%25-blue.svg?style=plastic)
+# Tensorflow Implementation of CapsNet with EM Routing
 
 A Tensorflow implementation of CapsNet based on paper [Matrix Capsules with EM Routing](https://openreview.net/pdf?id=HJWLfGWRb)
 
