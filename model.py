@@ -3,15 +3,24 @@ License: Apache-2.0
 Author: Suofei Zhang | Hang Yu
 E-mail: zhangsuofei at njupt.edu.cn | hangyu5 at illinois.edu
 """
+import time
 import warnings
 import tensorflow as tf
 import tensorflow.contrib.slim as slim
 from config import cfg
 import os
 import numpy as np
+import logging
+import daiquiri
+
+
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '1'
 warnings.filterwarnings("ignore")
+daiquiri.setup(level=logging.DEBUG)
+logger = daiquiri.getLogger(__name__)
 
+is_print = 0
+hist = 0
 i = 0
 j = 0
 def cross_ent_loss(output, x, y):
@@ -95,7 +104,6 @@ def spread_loss(output, pose_out, x, y, m):
 
 def kernel_tile(input, kernel, stride):
     # output = tf.extract_image_patches(input, ksizes=[1, kernel, kernel, 1], strides=[1, stride, stride, 1], rates=[1, 1, 1, 1], padding='VALID')
-
     input_shape = input.get_shape()
     tile_filter = np.zeros(shape=[kernel, kernel, input_shape[3],
                                   kernel * kernel], dtype=np.float32)
@@ -110,7 +118,6 @@ def kernel_tile(input, kernel, stride):
     output = tf.reshape(output, shape=[int(output_shape[0]), int(
         output_shape[1]), int(output_shape[2]), int(input_shape[3]), kernel * kernel])
     output = tf.transpose(output, perm=[0, 1, 2, 4, 3])
-
     return output
 
 # input should be a tensor with size as [batch_size, caps_num_i, 16]
@@ -128,7 +135,6 @@ def mat_transform(input, caps_num_c, regularizer, tag=False):
     w = tf.tile(w, [batch_size, 1, 1, 1, 1])
     output = tf.tile(output, [1, 1, caps_num_c, 1, 1])
     votes = tf.reshape(tf.matmul(output, w), [batch_size, caps_num_i, caps_num_c, 16])
-
     return votes
 
 
@@ -146,38 +152,50 @@ def build_arch_baseline(input, is_train: bool, num_classes: int):
         with tf.variable_scope('relu_conv1') as scope:
             output = slim.conv2d(input, num_outputs=32, kernel_size=[
                                  5, 5], stride=1, padding='SAME', scope=scope, activation_fn=tf.nn.relu)
-            o1 = tf.summary.histogram("Hist of Act1 ", output)
+            if(hist):
+                o1 = tf.summary.histogram("Hist of Act1 ", output)
+            tf.logging.info('output shape before maxpooling: {}'.format(output.get_shape()))
 
             output = slim.max_pool2d(output, [2, 2], scope='max_2d_layer1')
-            o2 = tf.summary.histogram("Hist of Pool1 ", output)
+            if(hist):
+                o2 = tf.summary.histogram("Hist of Pool1 ", output)
 
             tf.logging.info('output shape: {}'.format(output.get_shape()))
 
         with tf.variable_scope('relu_conv2') as scope:
             output = slim.conv2d(output, num_outputs=64, kernel_size=[
                                  5, 5], stride=1, padding='SAME', scope=scope, activation_fn=tf.nn.relu)
-            o3 = tf.summary.histogram("Hist of Act2 ", output)
+            if(hist):
+                o3 = tf.summary.histogram("Hist of Act2 ", output)
+            tf.logging.info('output shape before maxpooling: {}'.format(output.get_shape()))
+
 
 
             output = slim.max_pool2d(output, [2, 2], scope='max_2d_layer2')
-            o4 = tf.summary.histogram("Hist of Pose2 ", output)
+            if(hist):
+                 o4 = tf.summary.histogram("Hist of Pose2 ", output)
 
 
             tf.logging.info('output shape: {}'.format(output.get_shape()))
 
         output = slim.flatten(output)
         output = slim.fully_connected(output, 1024, scope='relu_fc3', activation_fn=tf.nn.relu)
-        o5 = tf.summary.histogram("Hist of FC_Act ", output)
+        if(hist):
+            o5 = tf.summary.histogram("Hist of FC_Act ", output)
 
 
         tf.logging.info('output shape: {}'.format(output.get_shape()))
         output = slim.dropout(output, 0.5, scope='dp')
         output = slim.fully_connected(output, num_classes, scope='final_layer', activation_fn=None)
         tf.logging.info('output shape: {}'.format(output.get_shape()))
-        hist = tf.summary.merge([o1, o2 ,o3, o4, o5 ])
+        if(hist):
+            h = tf.summary.merge([o1, o2 ,o3, o4, o5 ])
+        else:
+            h = []
 
 
-        return output, hist
+
+        return output, h
 
 
 def build_arch(input, coord_add, is_train: bool, num_classes: int):
@@ -200,7 +218,8 @@ def build_arch(input, coord_add, is_train: bool, num_classes: int):
                                  5, 5], stride=2, padding='VALID', scope=scope, activation_fn=tf.nn.relu)
             data_size = int(np.floor((data_size - 4) / 2))
             # stupid.Print
-            output = tf.Print(output,[output[0,:,:,:]],'Activation_Relu',summarize= data_size * data_size * cfg.A  )
+            if (is_print==1):
+                output = tf.Print(output,[output[0,:,:,:]],'Activation_Relu',summarize= cfg.A*data_size*data_size  )
 
             assert output.get_shape() == [cfg.batch_size, data_size, data_size, cfg.A]
             tf.logging.info('conv1 output shape: {}'.format(output.get_shape()))
@@ -211,18 +230,17 @@ def build_arch(input, coord_add, is_train: bool, num_classes: int):
             activation = slim.conv2d(output, num_outputs=cfg.B, kernel_size=[
                                      1, 1], stride=1, padding='VALID', scope='primary_caps/activation', activation_fn=tf.nn.sigmoid)
             pose = tf.reshape(pose, shape=[cfg.batch_size, data_size, data_size, cfg.B, 16])
-            hist_p_pc = tf.summary.histogram("Hist of Pose of Primary Capsule", pose)
+            if(hist):
+               hist_p_pc = tf.summary.histogram("Hist of Pose of Primary Capsule", pose)
            # stupid.Print
-            for i in range(data_size):
-                for j in range(data_size):
-                   pose = tf.Print(pose,[pose[0,i,:j:,:]],'Pose_PC',summarize= cfg.B * 16 )
+            if (is_print==1):
+               pose = tf.Print(pose,[pose[:,:,:,:,:]],'Pose_PC',summarize= cfg.B *data_size*data_size* 16 )
 
             activation = tf.reshape(
                 activation, shape=[cfg.batch_size, data_size, data_size, cfg.B, 1])
             # stupid.Print
-            for i in range(data_size):
-                for j in range(data_size):
-                    activation = tf.Print(activation,[activation[0,i,j,:,:]],'Activation_PC',summarize=  cfg.B )
+            if (is_print==1):
+               activation = tf.Print(activation,[activation[:,:,:,:,:]],'Activation_PC',summarize=  cfg.B*data_size*data_size )
 
             output = tf.concat([pose, activation], axis=4)
             output = tf.reshape(output, shape=[cfg.batch_size, data_size, data_size, -1])
@@ -239,7 +257,8 @@ def build_arch(input, coord_add, is_train: bool, num_classes: int):
 
             with tf.variable_scope('v') as scope:
                 votes = mat_transform(output[:, :, :16], cfg.C, weights_regularizer, tag=True)
-                hist_v_1= tf.summary.histogram(name="Conv1 Votes", values=votes)
+                if(hist):
+                    hist_v_1= tf.summary.histogram(name="Conv1 Votes", values=votes)
                 tf.logging.info('conv cap 1 votes shape: {}'.format(votes.get_shape()))
 
             with tf.variable_scope('routing') as scope:
@@ -249,22 +268,22 @@ def build_arch(input, coord_add, is_train: bool, num_classes: int):
                     activation.get_shape()))
 
             pose = tf.reshape(miu, shape=[cfg.batch_size, data_size, data_size, cfg.C, 16])
-            hist_p_c1 = tf.summary.histogram("Hist of Pose of Conv1", pose)
+            if(hist):
+               hist_p_c1 = tf.summary.histogram("Hist of Pose of Conv1", pose)
            # stupid.Print
-            for i in range(data_size):
-                for j in range(data_size):
-                    pose = tf.Print(pose,[pose[0,i,j,:,:]],'Pose_CC1',summarize=  cfg.C * 16 )
+            if (is_print==1):
+                pose = tf.Print(pose,[pose[:,:,:,:,:]],'Pose_CC1',summarize= cfg.C *data_size*data_size* 16 )
 
             tf.logging.info('conv cap 1 pose shape: {}'.format(pose.get_shape()))
             activation = tf.reshape(
                 activation, shape=[cfg.batch_size, data_size, data_size, cfg.C, 1])
 
             # stupid.Print
-            for i in range(data_size):
-                for j in range(data_size):
-                   activation = tf.Print(activation,[activation[0,i,j,:,:]],'Activation_CC1',summarize=  cfg.C )
+            if (is_print==1):
+               activation = tf.Print(activation,[activation[:,:,:,:,:]],'Activation_CC1',summarize=  cfg.C*data_size*data_size )
 
-            hist_a_c1= tf.summary.histogram(name="Conv1 Activations", values=activation)
+            if(hist):
+               hist_a_c1= tf.summary.histogram(name="Conv1 Activations", values=activation)
             tf.logging.info('conv cap 1 activation after reshape: {}'.format(
                 activation.get_shape()))
             output = tf.reshape(tf.concat([pose, activation], axis=4), [
@@ -281,7 +300,8 @@ def build_arch(input, coord_add, is_train: bool, num_classes: int):
 
             with tf.variable_scope('v') as scope:
                 votes = mat_transform(output[:, :, :16], cfg.D, weights_regularizer)
-                hist_v_2= tf.summary.histogram(name="Conv2 Votes", values=votes)
+                if(hist):
+                    hist_v_2= tf.summary.histogram(name="Conv2 Votes", values=votes)
 
                 tf.logging.info('conv cap 2 votes shape: {}'.format(votes.get_shape()))
 
@@ -289,16 +309,20 @@ def build_arch(input, coord_add, is_train: bool, num_classes: int):
                 miu, activation, _ = em_routing(votes, activation, cfg.D, weights_regularizer)
 
             pose = tf.reshape(miu, shape=[cfg.batch_size * data_size * data_size, cfg.D, 16])
-            hist_p_c2 = tf.summary.histogram("Hist of Pose of Conv2", pose)
+            if(hist):
+               hist_p_c2 = tf.summary.histogram("Hist of Pose of Conv2", pose)
            # stupid.Print
-            pose = tf.Print(pose,[pose[:,:,:]],'Pose_CC22',summarize= cfg.C * 16 )
+            if (is_print==1):
+               pose = tf.Print(pose,[pose[:,:,:]],'Pose_CC22',summarize= cfg.D * data_size*data_size* 16 )
 
             tf.logging.info('conv cap 2 pose shape: {}'.format(votes.get_shape()))
             activation = tf.reshape(
                 activation, shape=[cfg.batch_size * data_size * data_size, cfg.D, 1])
-            hist_a_c2= tf.summary.histogram(name="Conv2 Activations", values=activation)
+            if(hist):
+                hist_a_c2= tf.summary.histogram(name="Conv2 Activations", values=activation)
             # stupid.Print
-            activation = tf.Print(activation,[activation[:,:,:]],'activation_cc2',summarize= data_size * data_size * cfg.D )
+            if (is_print==1):
+               activation = tf.Print(activation,[activation[:,:,:]],'Activation_CC2',summarize= data_size * data_size * cfg.D )
 
             tf.logging.info('conv cap 2 activation shape: {}'.format(activation.get_shape()))
 
@@ -307,7 +331,8 @@ def build_arch(input, coord_add, is_train: bool, num_classes: int):
         with tf.variable_scope('class_caps') as scope:
             with tf.variable_scope('v') as scope:
                 votes = mat_transform(pose, num_classes, weights_regularizer)
-                hist_p_cc = tf.summary.histogram("Hist of Pose of class caps", pose)
+                if(hist):
+                    hist_p_cc = tf.summary.histogram("Hist of Pose of class caps", pose)
 
                 assert votes.get_shape() == [cfg.batch_size * data_size *
                                              data_size, cfg.D, num_classes, 16]
@@ -325,13 +350,12 @@ def build_arch(input, coord_add, is_train: bool, num_classes: int):
                     votes, activation, num_classes, weights_regularizer)
                 tf.logging.info(
                     'class cap activation shape: {}'.format(activation.get_shape()))
-                tf.summary.histogram(name="class_cap_routing_hist",
-                                     values=test2)
 
             output = tf.reshape(activation, shape=[
                                 cfg.batch_size, data_size, data_size, num_classes])
             # stupid.Print
-            output = tf.Print(output,[output[:,:,:]],'activation_class',summarize= data_size * data_size * num_classes )
+            if(is_print==1):
+             output = tf.Print(output,[output[:,:,:]],'activation_class',summarize= data_size * data_size * num_classes )
 
         output = tf.reshape(tf.nn.avg_pool(output, ksize=[1, data_size, data_size, 1], strides=[
                             1, 1, 1, 1], padding='VALID'), shape=[cfg.batch_size, num_classes])
@@ -341,11 +365,15 @@ def build_arch(input, coord_add, is_train: bool, num_classes: int):
                               1, data_size, data_size, 1], strides=[1, 1, 1, 1], padding='VALID')
         pose_out = tf.reshape(pose, shape=[cfg.batch_size, num_classes, 18])
         # stupid.Print
-        pose_out = tf.Print(pose_out,[pose_out[0,:,:]],'Pose_CC22',summarize= num_classes * 18 )
+        if(is_print==1):
+           pose_out = tf.Print(pose_out,[pose_out[0,:,:]],'Pose_CC22',summarize= num_classes * 18 )
+        if(hist):
+            h = tf.summary.merge([hist_a_c1,hist_a_c2, hist_v_1,hist_v_2,hist_p_cc, hist_p_pc, hist_p_c1, hist_p_c2 ])
+        else:
+            h = []
 
-        hist = tf.summary.merge([hist_a_c1,hist_a_c2, hist_v_1,hist_v_2,hist_p_cc, hist_p_pc, hist_p_c1, hist_p_c2 ])
 
-    return output, pose_out, hist
+    return output, pose_out, h
 
 
 def test_accuracy(logits, labels):
@@ -378,6 +406,8 @@ def em_routing(votes, activation, caps_num_c, regularizer, tag=False):
     # activation_in = tf.stop_gradient(activation, name='stop_gradient_activation')
     votes_in = votes
     activation_in = activation
+    tf.logging.info('A-in: {}'.format(activation_in.get_shape()))
+
 
     for iters in range(cfg.iter_routing):
         # if iters == cfg.iter_routing-1:
@@ -402,7 +432,10 @@ def em_routing(votes, activation, caps_num_c, regularizer, tag=False):
 
         # m-step
         r = r * activation_in
+        tf.logging.info('Rij: {}'.format(r.get_shape()))
+
         r = r / (tf.reduce_sum(r, axis=2, keep_dims=True)+cfg.epsilon)
+        tf.logging.info('Rij_reduced: {}'.format(r.get_shape()))
 
         r_sum = tf.reduce_sum(r, axis=1, keep_dims=True)
         r1 = tf.reshape(r / (r_sum + cfg.epsilon),
@@ -411,13 +444,22 @@ def em_routing(votes, activation, caps_num_c, regularizer, tag=False):
         miu = tf.reduce_sum(votes_in * r1, axis=1, keep_dims=True)
         sigma_square = tf.reduce_sum(tf.square(votes_in - miu) * r1,
                                      axis=1, keep_dims=True) + cfg.epsilon
+        tf.logging.info('Myooh: {}'.format(miu.get_shape()))
+        tf.logging.info('Sigma: {}'.format(sigma_square.get_shape()))
+
+
 
         if iters == cfg.iter_routing-1:
             r_sum = tf.reshape(r_sum, [batch_size, caps_num_c, 1])
             cost_h = (beta_v + tf.log(tf.sqrt(tf.reshape(sigma_square,
                                                          shape=[batch_size, caps_num_c, n_channels])))) * r_sum
+            tf.logging.info('Cost: {}'.format(cost_h.get_shape()))
+
 
             activation_out = tf.nn.softmax(cfg.ac_lambda0 * (beta_a - tf.reduce_sum(cost_h, axis=2)))
+            tf.logging.info('A-out: {}'.format(activation_out.get_shape()))
+
+
         else:
             activation_out = tf.nn.softmax(r_sum)
         # if iters <= cfg.iter_routing-1:

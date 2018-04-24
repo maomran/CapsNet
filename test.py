@@ -11,6 +11,8 @@ import time
 import os
 import capsnet_em as net
 import tensorflow.contrib.slim as slim
+from tensorflow.core.profiler import tfprof_log_pb2
+
 
 import logging
 import daiquiri
@@ -19,7 +21,8 @@ daiquiri.setup(level=logging.DEBUG)
 logger = daiquiri.getLogger(__name__)
 
 warnings.filterwarnings("ignore")
-rundata = 1
+tfprof = 1 
+rundata =0
 def main(args):
     """Get dataset hyperparameters."""
     assert len(args) == 3 and isinstance(args[1], str) and isinstance(args[2], str)
@@ -38,6 +41,9 @@ def main(args):
     with tf.Graph().as_default():
         num_batches_per_epoch_train = int(dataset_size_train / cfg.batch_size)
         num_batches_test = int(dataset_size_test / cfg.batch_size * 0.1)
+#       num_batches_test = 2
+        
+
 
         batch_x, batch_labels = create_inputs()
         batch_x = slim.batch_norm(batch_x, center=False, is_training=False, trainable=False)
@@ -93,13 +99,39 @@ def main(args):
                 saver.restore(sess,tf.train.latest_checkpoint(cfg.logdir + '/{}/{}/'.format(model_name, dataset_name)))
                 accuracy_sum = 0
                 for i in range(num_batches_test):
+                    if (tfprof):
+                        builder = tf.profiler.ProfileOptionBuilder
+                        run_metadata = tf.RunMetadata()
+                        opts = builder(builder.time_and_memory()).order_by('occurrence').build()
+
                     if (rundata == 1):
                         run_options = tf.RunOptions(trace_level=tf.RunOptions.FULL_TRACE)
                         run_metadata = tf.RunMetadata()
                         batch_acc_v, summary_str = sess.run([batch_acc, summary_op], options=run_options,run_metadata=run_metadata)
-                    else:
-                        batch_acc_v, summary_str = sess.run([batch_acc, summary_op])
+                    elif(tfprof):
+                        with tf.contrib.tfprof.ProfileContext('/data/omran/capsnet/em_fresh/results', trace_steps=range(10,20), dump_steps=[10]) as pctx:
+                             pctx.trace_next_step()
+                             pctx.dump_next_step()
+                             batch_acc_v, summary_str = sess.run([batch_acc, summary_op],options=tf.RunOptions(trace_level=tf.RunOptions.FULL_TRACE),run_metadata=run_metadata)
+                             pctx.profiler.profile_operations(options=opts)
+#                             tf.profiler.write_op_log(sess.graph, '/data/omran/capsnet/em_fresh/results',op_log=None,run_meta=None,add_trace=True)
+                             op_log = tfprof_log_pb2.OpLogProto()
+                             run_metadata = tf.RunMetadata()
 
+                             tf.contrib.tfprof.tfprof_logger.write_op_log(
+                                tf.get_default_graph(),
+                                log_dir="/data/omran/capsnet/em_fresh/results",
+                                    op_log=op_log,
+                                    run_meta=run_metadata)
+
+                             tf.contrib.tfprof.model_analyzer.print_model_analysis(
+                                    tf.get_default_graph(),  run_metadata, op_log=op_log,tfprof_options=tf.contrib.tfprof.model_analyzer.FLOAT_OPS_OPTIONS)
+
+
+                    else:
+                                     
+                        batch_acc_v, summary_str = sess.run([batch_acc, summary_op])
+        
                     print('%d batches are tested.' % step)
 #                    if (i == num_batches_test % 500 ):
                     if(rundata ==1):
