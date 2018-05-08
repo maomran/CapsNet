@@ -201,9 +201,6 @@ def build_arch_baseline(input, is_train: bool, num_classes: int):
 def build_arch(input, coord_add, is_train: bool, num_classes: int):
     test1 = []
     data_size = int(input.get_shape()[1])
-    # xavier initialization is necessary here to provide higher stability
-    # initializer = tf.truncated_normal_initializer(mean=0.0, stddev=0.01)
-    # instead of initializing bias with constant 0, a truncated normal initializer is exploited here for higher stability
     bias_initializer = tf.truncated_normal_initializer(
         mean=0.0, stddev=0.01)  # tf.constant_initializer(0.0)
     # The paper didnot mention any regularization, a common l2 regularizer to weights is added here

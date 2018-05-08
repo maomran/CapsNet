@@ -11,7 +11,7 @@ import time
 import numpy as np
 import sys
 import os
-import capsnet_em as net
+import model as net
 
 import logging
 import daiquiri
