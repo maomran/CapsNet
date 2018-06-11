@@ -1,42 +1,5 @@
 # Tensorflow Implementation of CapsNet with EM Routing
-
-A Tensorflow implementation of CapsNet based on paper [Matrix Capsules with EM Routing](https://openreview.net/pdf?id=HJWLfGWRb)
-
-> **Status:**
-> 1. With configuration A=32, B=8, C=16, D=16, batch_size=128, the code can work on a Tesla P40 GPU at a speed of 8s/iteration. The definitions of A-D can be referred to the paper.
-> 2. With configuration A=B=C=D=32, batch_size=64, the code can work on a Tesla P40 GPU at a speed of 25s/iteration. More optimization on implementation structure is required.
-> 3. Some modification and optimization is implemented to prompt the numerical stability of GMM. Specific explanations can be found in the code.
-> 4. With configuration A=32, B=4, D=4, D=4, batch_size=128, each iteration of training takes around 0.6s on a Tesla P40 GPU.
-
-> **Current Results on smallNORB:**
-- Configuration: A=32, B=8, C=16, D=16, batch_size=50, iteration number of EM routing: 2, with Coordinate Addition, spread loss, batch normalization
-- Training loss. Variation of loss is suppressed by batch normalization. However there still exists a gap between our best results and the reported results in the original paper.
-![spread loss](imgs/spread_loss_norb.png)
-
-- Test accuracy(current best result is 91.8%)
-![test_acc](imgs/test_accuracy_norb.png)
-
-> **Ablation Study on smallNORB:**
-- Configuration: A=32, B=8, C=16, D=16, batch_size=32, iteration number of EM routing: 2, with Coordinate Addition, spread loss, test accuracy is 79.8%.
-
-> **Current Results on MNIST:**
-- Configuration: A=32, B=8, C=16, D=16, batch_size=50, iteration number of EM routing: 2, with Coordinate Addition, spread loss, batch normalization, reconstruction loss.
-
-- Training loss.
-![spread loss](imgs/training_loss.png)
-
-- Test accuracy(current best result is 99.3%, only 10% samples are used in test)
-![test_acc](imgs/test_accuracy.png)
-
-> **Ablation Study on MNIST:**
-- Configuration: A=32, B=4, C=4, D=4, batch_size=128, iteration number of EM routing: 2, no Coordinate Addition, cross entropy loss, test accuracy is 96.4%.
-- Configuration: A=32, B=4, C=4, D=4, batch_size=128, iteration number of EM routing: 2, with Coordinate Addition, cross entropy loss, test accuracy is 96.8%.
-- Configuration: A=32, B=8, C=16, D=16, batch_size=32, iteration number of EM routing: 2, with Coordinate Addition, spread loss 99.1%.
-
-> **To Do List:**
-> 1. Experiments on smallNORB as in paper is about to be casted.
-
-Any questions and comments to the code and the original algorithms are welcomed!!! My email: zhangsuofei at njupt.edu.cn
+## Based on the implementation of https://github.com/www0wwwjs1/Matrix-Capsules-EM-Tensorflow
 
 ## Requirements
 - Python >= 3.4
@@ -115,6 +78,3 @@ View the status of test:
 $ tensorboard --logdir=./test_logdir/{model_name}/{dataset_name}/
 ```
 Open the url tensorboard has shown.
-
-### Reference
-- [naturomics/CapsNet-Tensorflow](https://github.com/naturomics/CapsNet-Tensorflow): the implementation of Hinton's paper [Dynamic Routing Between Capsules](https://arxiv.org/abs/1710.09829)
