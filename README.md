@@ -1,5 +1,5 @@
-# Tensorflow Implementation of CapsNet with EM Routing
-## Based on the implementation of https://github.com/www0wwwjs1/Matrix-Capsules-EM-Tensorflow
+# Capsule Network based on Expectation Maximization Performance Analysis
+### Based on the implementation of https://github.com/www0wwwjs1/Matrix-Capsules-EM-Tensorflow
 
 ## Requirements
 - Python >= 3.4
