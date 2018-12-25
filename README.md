@@ -1,10 +1,13 @@
 # EM Capsnet Performance Analysis
 ## Experiment 
-A new routing algorithm for capsule network proposed in
-[GEH18](https://openreview.net/pdf?id=HJWLfGWRb). In this paper, the authors treat the relationship between the low level capsules to
-the high level ones as a clustering problem. Hence, routing using expectation maximization is
-proposed to solve this problem. this experiment will show some results of profiling basic operations
-in software implementation of this capsule network architecture.
+Capsule network is a new proposed neural network in
+[GEH18](https://openreview.net/pdf?id=HJWLfGWRb) as an enhancement to Convlutional
+Neural Network(CNN) and potentially could replace CNNs in different application that require
+more accurate detection of objects that tends to change in terms of graphical properties such
+as position, orientation and thickness. In this work, we study the architecture of a capsule
+network, demonstrate its bottlenecks by profiling its operation and finally we propose potential
+solutions that can take advantage of patterns we have observed that can be implemented as a
+hardware accelerator. 
 ### Based on the implementation of [Matrix-Capsules](https://github.com/www0wwwjs1/Matrix-Capsules-EM-Tensorflow)
 
 
@@ -55,6 +58,6 @@ Results are generated in folder ```results```
 View your profiling on tensorboard. 
 
 ## Results
-![Test Accuracy][./imgs/accuracy.png]
+![Test Accuracy](./imgs/accuracy.png)
 
 
