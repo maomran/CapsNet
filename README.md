@@ -75,7 +75,7 @@ $ python3 test.py "smallNORB" "caps"
 **5.**
 Results are generated in folder ```test_logdir```
 
-**Step 4.**
+**6.**
 View your profiling on tensorboard. 
 ```
 $ tensorboard --logdir=./test_logdir/{mode}/{dataset}/
