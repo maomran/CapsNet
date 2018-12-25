@@ -31,7 +31,6 @@ This table shows the most expensive operations in terms of memory usage and exec
 |Sub |163.70MB |2.73ms    |
 |Conv2D|14.56MB   |1.48ms |
 |Tile   |326.25MB    |1.04ms|
-
 ## Reproduce
 **Step 1.**
 Clone this repository with ``git``.
