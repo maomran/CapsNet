@@ -22,6 +22,12 @@ This figure shows the pose matrix (which learns the graphical features of an obj
 
 ## Profiling Ops
 This table shows the most expensive operations in terms of memory usage and execution time
+| Tables        | Are           | Cool  |
+| ------------- |:-------------:| -----:|
+| col 3 is      | right-aligned | $1600 |
+| col 2 is      | centered      |   $12 |
+| zebra stripes | are neat      |    $1 |
+
 | OP Name      |Alloc. Bytes|Exec. time  |
 | :-------------: |:-------------:| :-----:|
 | BatchMatMul   | 297.25MB | 263.69ms |
