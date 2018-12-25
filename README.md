@@ -21,6 +21,7 @@ This figure shows the pose matrix (which learns the graphical features of an obj
 ![Pose Matrix](./imgs/pose.png)
 
 ## Profiling Ops
+This table shows the most expensive operations in terms of memory usage and execution time:
 | OP Name      |Alloc. Bytes|exec. time  |
 | ------------- |:-------------:| -----:|
 | BatchMatMul   | 297.25MB | 263.69ms |
@@ -29,7 +30,7 @@ This figure shows the pose matrix (which learns the graphical features of an obj
 |Sub |                          163.70MB |          2.73ms    |
 |Conv2D|                          14.56MB   |          1.48ms |
 |Tile   |                       326.25MB    |          1.04ms|
-
+-> Read final report in [here](./EECE527_Final_Report.pdf)
 ## Reproduce
 **Step 1.**
 Clone this repository with ``git``.
