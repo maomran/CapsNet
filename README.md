@@ -10,6 +10,17 @@ solutions that can take advantage of patterns we have observed that can be imple
 hardware accelerator. 
 ### Based on the implementation of [Matrix-Capsules](https://github.com/www0wwwjs1/Matrix-Capsules-EM-Tensorflow)
 
+## Results
+This figure shows tests accuracy of three benchmarks evaluated which are MNIST, Fashion-MNIST and SmallNORB.
+![Test Accuracy](./imgs/accuracy.png)
+
+This figure shows activations histogram through the caps layer which shows that activations in capslayer follow the same pattern as CNN layers activation, it gets more sparse when going deeper to the network.  
+![Caps Layer Activation](./imgs/acts.png)
+
+This figure shows the pose matrix (which learns the graphical features of an object) histogram of the learned pose matrix across MNIST and SmallNORB. As observed, pose matrix of smallNORB tends to be more wide compared to MNIST since the dataset represents oriented objects which exploits the problem that CNN struggles to learn.    
+![Pose Matrix](./imgs/pose.png)
+
+
 
 ## Reproduce
 **Step 1.**
@@ -56,8 +67,5 @@ Results are generated in folder ```results```
 
 **Step 4.**
 View your profiling on tensorboard. 
-
-## Results
-![Test Accuracy](./imgs/accuracy.png)
 
 
