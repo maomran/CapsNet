@@ -1,4 +1,4 @@
-# EM Capsnet Performance Analysis
+# EM based Capsnet Performance Analysis
 ## Experiment 
 Capsule network is a new proposed neural network in
 [GEH18](https://openreview.net/pdf?id=HJWLfGWRb) as an enhancement to Convlutional
@@ -32,13 +32,13 @@ This table shows the most expensive operations in terms of memory usage and exec
 |Conv2D|14.56MB   |1.48ms |
 |Tile   |326.25MB    |1.04ms|
 ## Reproduce
-**Step 1.**
+**1.**
 Clone this repository with ``git``.
 ```
 $ git clone https://github.com/maomran/CapsNet.git
 $ cd CapsNet
 ```
-**Step 2.**
+**2.**
 Download the [MNIST dataset](http://yann.lecun.com/exdb/mnist/)
 ```
 $ mkdir -p data/mnist
@@ -47,34 +47,37 @@ $ gunzip data/mnist/*.gz
 ```
 ***To install smallNORB, follow instructions in ```./data/README.md```***
 
-**Step 3.**
-Start the training(MNIST):
+**3.**
+Start the training
+(MNIST):
 ```
 $ python3 train.py "mnist"
 ```
-Start the training(smallNORB):
+(smallNORB):
 ```
 $ python3 train.py "smallNORB"
 ```
-Start the training(CNN baseline):
+(CNN baseline):
 ```
 $ python3 train_baseline.py "smallNORB"
 ```
 
-**Step 3.**
-Start the test on MNIST:
+**4.**
+Start test 
+MNIST:
 ```
 $ python3 test.py "mnist" "caps"
 ```
-
-Start the test on smallNORB:
+smallNORB:
 ```
 $ python3 test.py "smallNORB" "caps"
 ```
-**Step 3.**
-Results are generated in folder ```results```
+**5.**
+Results are generated in folder ```test_logdir```
 
 **Step 4.**
 View your profiling on tensorboard. 
-
+```
+$ tensorboard --logdir=./test_logdir/{mode}/{dataset}/
+```
 
