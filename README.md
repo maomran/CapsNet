@@ -8,14 +8,19 @@
 - Keras
 
 ```pip install -r requirement.txt```
-
-## Usage
+## Experiment 
+A new routing algorithm for capsule network proposed in
+[GEH18](https://openreview.net/pdf?id=HJWLfGWRb). In this paper, the authors treat the relationship between the low level capsules to
+the high level ones as a clustering problem. Hence, routing using expectation maximization is
+proposed to solve this problem. this experiment will show some results of profiling basic operations
+in software implementation of this capsule network architecture.
+## Reproduce
 **Step 1.**
 Clone this repository with ``git``.
 
 ```
-$ git clone https://github.com/www0wwwjs1/Matrix-Capsules-EM-Tensorflow.git
-$ cd Matrix-Capsules-EM-Tensorflow
+$ git clone https://github.com/maomran/CapsNet.git
+$ cd CapsNet
 ```
 
 **Step 2.**
@@ -34,16 +39,6 @@ Start the training(MNIST):
 ```
 $ python3 train.py "mnist"
 ```
-
-**Step 4.**
-Download the [Fashion MNIST dataset](https://github.com/zalandoresearch/fashion-mnist), ``mv`` and extract it into ``data/fashion_mnist`` directory.(Be careful the backslash appeared around the curly braces when you copy the ``wget `` command to your terminal, remove it)
-
-```
-$ mkdir -p data/fashion_mnist
-$ wget -c -P data/fashion_mnist http://fashion-mnist.s3-website.eu-central-1.amazonaws.com/{train-images-idx3-ubyte.gz,train-labels-idx1-ubyte.gz,t10k-images-idx3-ubyte.gz,t10k-labels-idx1-ubyte.gz}
-$ gunzip data/fashion_mnist/*.gz
-```
-
 Start the training(smallNORB):
 ```
 $ python3 train.py "smallNORB"
@@ -54,27 +49,23 @@ Start the training(CNN baseline):
 $ python3 train_baseline.py "smallNORB"
 ```
 
-**Step 4.**
-View the status of training:
-```
-$ tensorboard --logdir=./logdir/{model_name}/{dataset_name}/train_log/
-```
-Open the url tensorboard has shown.
-
-**Step 5.**
+**Step 3.**
 Start the test on MNIST:
 ```
-$ python3 eval.py "mnist" "caps"
+$ python3 test.py "mnist" "caps"
 ```
 
 Start the test on smallNORB:
 ```
-$ python3 eval.py "smallNORB" "caps"
+$ python3 test.py "smallNORB" "caps"
 ```
+**Step 3.**
+Results are generated in folder ```results```
 
-**Step 6.**
-View the status of test:
-```
-$ tensorboard --logdir=./test_logdir/{model_name}/{dataset_name}/
-```
-Open the url tensorboard has shown.
+**Step 4.**
+View your profiling on tensorboard. 
+
+## Results
+![Test Accuracy][./imgs/accuracy]
+
+
