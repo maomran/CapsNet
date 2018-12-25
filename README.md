@@ -19,6 +19,7 @@ This figure shows activations histogram through the caps layer which shows that 
 
 This figure shows the pose matrix (which learns the graphical features of an object) histogram of the learned pose matrix across MNIST and SmallNORB. As observed, pose matrix of smallNORB tends to be more wide compared to MNIST since the dataset represents oriented objects which exploits the problem that CNN struggles to learn.    
 ![Pose Matrix](./imgs/pose.png)
+-> Read final report in [here](./EECE527_Final_Report.pdf)
 
 ## Profiling Ops
 This table shows the most expensive operations in terms of memory usage and execution time:
@@ -30,7 +31,6 @@ This table shows the most expensive operations in terms of memory usage and exec
 |Sub |                          163.70MB |          2.73ms    |
 |Conv2D|                          14.56MB   |          1.48ms |
 |Tile   |                       326.25MB    |          1.04ms|
--> Read final report in [here](./EECE527_Final_Report.pdf)
 ## Reproduce
 **Step 1.**
 Clone this repository with ``git``.
